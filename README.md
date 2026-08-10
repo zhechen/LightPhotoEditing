@@ -4,28 +4,22 @@ LightEdit is a compact, local-first desktop raster editor for Python 3.11+. It w
 full-resolution RGBA layers and lossless `.ledit` projects; JPEG is deliberately a separate,
 flattened export.
 
-## Install and launch
+## Windows quick start
 
-Run the install commands from the repository root: the directory containing this `README.md`,
-`pyproject.toml`, and `src`. On Windows PowerShell:
+Open PowerShell in the downloaded/cloned LightPhotoEditing folder, then run:
 
 ```powershell
-if (-not (Test-Path .\pyproject.toml)) { throw "Open PowerShell in the LightPhotoEditing repository root" }
 py -3 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
 .\.venv\Scripts\python.exe -m pip install -e .
 .\.venv\Scripts\lightedit.exe
 ```
 
-For later launches, open PowerShell in the same folder and run only
-`.\.venv\Scripts\lightedit.exe`. Alternatively, activate the environment with
-`.\.venv\Scripts\Activate.ps1` and then use the shorter `lightedit` command. In Windows Command
-Prompt, activation is `.venv\Scripts\activate.bat`.
+For later launches, open the same folder and run `.\.venv\Scripts\lightedit.exe`.
 
 ## Build a standalone Windows EXE
 
-Build the EXE on Windows; PyInstaller cannot create a Windows executable from macOS or Linux.
-Starting from a PowerShell prompt in the repository root:
+Build on Windows from PowerShell in the repository folder:
 
 ```powershell
 py -3 -m venv .venv
@@ -35,11 +29,8 @@ py -3 -m venv .venv
 & .\dist\LightEdit.exe
 ```
 
-The finished application is `dist\LightEdit.exe`. It can be copied to another Windows computer
-and launched without installing Python. Build on the same CPU architecture as the destination
-(normally 64-bit), and distribute the EXE from a trusted location. Because local builds are not
-code-signed, Windows SmartScreen may ask the recipient to confirm that they trust it. Re-run the
-PyInstaller command after source changes to rebuild the application.
+The standalone application is `dist\LightEdit.exe`; the destination computer does not need
+Python. Windows may show a SmartScreen prompt because a local build is not code-signed.
 
 ## macOS and Linux
 
@@ -74,6 +65,12 @@ Brush input is interpolated and one uninterrupted stroke is one undo operation. 
 healing, clone stamping and liquify are destructive layer operations, so duplicate important
 layers first. Masks are grayscale: white reveals and black hides.
 
+The canvas starts at 1280 × 1280. Select several images in **File > Open**, or drag them together
+onto the canvas, to create one layer per image. Drag a layer to move it and drag its lower-right
+handle to resize it. **Edit > Align to Grid** shows the grid and snaps transforms. Use **Set Canvas
+Size** for a different canvas, and the Layers panel buttons to invert a mask or temporarily set it
+to 50% while comparing layers.
+
 ## Projects, recovery, and export
 
 `.ledit` is a ZIP with a versioned `manifest.json` and lossless PNGs for every layer and mask.
@@ -102,22 +99,9 @@ color-managed monitor proofing, RAW development, plugins, or cross-platform pack
 
 ## Troubleshooting
 
-If Qt cannot find a display, set `QT_QPA_PLATFORM=offscreen` for tests (not interactive use).
-If pip reports that a directory "does not appear to be a Python project", it is installing from
-the wrong or an incomplete directory. In the same terminal, run `Get-Location` and
-`Test-Path .\pyproject.toml` in PowerShell (or `cd` and `dir pyproject.toml` in Command Prompt).
-The file check must succeed before running `python -m pip install -e ".[dev]"`. Change to the
-repository root first; if the file is still absent, download or clone the complete repository
-rather than an individual source file. Do not copy `pyproject.toml` into an unrelated working
-directory, because the build also needs `README.md` and `src`.
-
-Reinstall the editable package after moving the checkout. If `py` selects an older interpreter,
-check installed versions with `py -0p` and recreate the environment explicitly with
-`py -3.11 -m venv .venv`. If PowerShell blocks `Activate.ps1`, either use Command Prompt or run
-`.\.venv\Scripts\python -m pip install -e ".[dev]"` and `.\.venv\Scripts\lightedit.exe` without
-activation. If OpenCV/Qt wheels conflict, recreate the virtual environment. A rejected project
-likely uses a newer manifest version; upgrade rather than editing the archive. Preserve a recovery
-file before investigating a crash.
+Run commands from the folder containing `pyproject.toml`. If installation fails after an update,
+delete `.venv` and repeat the quick-start steps. On Linux test servers without a display, use
+`QT_QPA_PLATFORM=offscreen pytest`.
 
 ## Contributing
 
