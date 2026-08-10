@@ -10,17 +10,40 @@ Run the install commands from the repository root: the directory containing this
 `pyproject.toml`, and `src`. On Windows PowerShell:
 
 ```powershell
-cd C:\path\to\LightPhotoEditing
 if (-not (Test-Path .\pyproject.toml)) { throw "Open PowerShell in the LightPhotoEditing repository root" }
-py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
-lightedit
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -e .
+.\.venv\Scripts\lightedit.exe
 ```
 
-In Windows Command Prompt, use `.venv\Scripts\activate.bat` instead of the PowerShell activation
-command. On macOS or Linux:
+For later launches, open PowerShell in the same folder and run only
+`.\.venv\Scripts\lightedit.exe`. Alternatively, activate the environment with
+`.\.venv\Scripts\Activate.ps1` and then use the shorter `lightedit` command. In Windows Command
+Prompt, activation is `.venv\Scripts\activate.bat`.
+
+## Build a standalone Windows EXE
+
+Build the EXE on Windows; PyInstaller cannot create a Windows executable from macOS or Linux.
+Starting from a PowerShell prompt in the repository root:
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\pyinstaller.exe --clean --noconfirm LightEdit.spec
+& .\dist\LightEdit.exe
+```
+
+The finished application is `dist\LightEdit.exe`. It can be copied to another Windows computer
+and launched without installing Python. Build on the same CPU architecture as the destination
+(normally 64-bit), and distribute the EXE from a trusted location. Because local builds are not
+code-signed, Windows SmartScreen may ask the recipient to confirm that they trust it. Re-run the
+PyInstaller command after source changes to rebuild the application.
+
+## macOS and Linux
+
+Run these commands from the repository root:
 
 ```bash
 cd /path/to/LightPhotoEditing
@@ -59,18 +82,16 @@ JPEG export composites visible layers at full resolution, supports resizing, qua
 sRGB tagging, estimates output by encoding it, confirms overwrites, and never marks a project
 saved. Metadata is removed by default for privacy.
 
-## Packaging and development
+## Development checks
 
 ```bash
 ruff format --check .
 ruff check .
 pytest
-pyinstaller --clean LightEdit.spec
 ```
 
-The artifact is in `dist/LightEdit` (`dist/LightEdit.exe` on Windows). Windows releases should be
-built and launched on Windows because PyInstaller does not cross-compile. Tests generate their
-own images and include headless Qt workflows; no personal photos or network services are used.
+Tests generate their own images and include headless Qt workflows; no personal photos or network
+services are used.
 
 ## Privacy, performance, and limitations
 
