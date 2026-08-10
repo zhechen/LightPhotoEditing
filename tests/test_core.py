@@ -8,6 +8,12 @@ from lightedit.core.project import load_project, save_project
 from lightedit.imaging.composite import blend_rgb
 from lightedit.imaging.healing import inpaint
 from lightedit.imaging.liquify import apply, identity_field, push
+from lightedit.imaging.layers import (
+    content_bounds,
+    place_on_canvas,
+    resize_canvas,
+    transform_content,
+)
 from lightedit.shortcuts import SHORTCUTS
 
 
@@ -72,3 +78,18 @@ def test_shortcuts_unique_and_expected():
     values = [value[1] for value in SHORTCUTS.values()]
     assert len(values) == len(set(values))
     assert SHORTCUTS["blur_sharpen"][1] == "R"
+
+
+def test_layer_placement_transform_and_canvas_resize():
+    source = rgba((10, 20, 30, 255), (2, 4))
+    placed = place_on_canvas(source, (10, 8))
+    assert placed.shape == (8, 10, 4)
+    assert content_bounds(placed) == (3, 3, 4, 2)
+
+    transformed = transform_content(placed, (1, 2, 8, 4))
+    assert content_bounds(transformed) == (1, 2, 8, 4)
+    assert tuple(transformed[2, 1]) == (10, 20, 30, 255)
+
+    expanded = resize_canvas(transformed, (12, 10))
+    assert expanded.shape == (10, 12, 4)
+    assert content_bounds(expanded) == (2, 3, 8, 4)
