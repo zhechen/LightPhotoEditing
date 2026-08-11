@@ -59,17 +59,30 @@ On a headless machine use `QT_QPA_PLATFORM=offscreen lightedit`. Open PNG/JPEG o
 | Brush / Clone / Healing | B / S / J |
 | Liquify | Ctrl+Shift+X |
 | Cycle Blur and Sharpen | R |
+| Normal cursor / Zoom / Hand | V / Z / H |
+| Zoom in / Zoom out | Ctrl++ / Ctrl+- |
+| Fit canvas / Actual size | Ctrl+0 / Ctrl+1 |
+| Return to normal cursor | Esc |
 | Shortcut reference | Ctrl+/ |
 
 Brush input is interpolated and one uninterrupted stroke is one undo operation. Blur, sharpen,
 healing, clone stamping and liquify are destructive layer operations, so duplicate important
 layers first. Masks are grayscale: white reveals and black hides.
 
-The canvas starts at 1280 × 1280. Select several images in **File > Open**, or drag them together
-onto the canvas, to create one layer per image. Drag a layer to move it and drag its lower-right
+The canvas starts at 1280 × 1280. Select several images in **File > Open**, or drag local PNG,
+JPEG, WebP, or BMP files anywhere onto the window, to create one layer per image. Dropping a
+`.ledit` file opens that project. Drag a layer to move it and drag its lower-right
 handle to resize it. **Edit > Align to Grid** shows the grid and snaps transforms. Use **Set Canvas
 Size** for a different canvas, and the Layers panel buttons to invert a mask or temporarily set it
 to 50% while comparing layers.
+
+Large canvases automatically fit inside the preview without changing their pixel dimensions.
+Choose **View > Fit Canvas in Window** (`Ctrl+0`) to fit again, **Actual Size** (`Ctrl+1`) for 100%,
+or use the visible Zoom In/Out menu commands. Press `Z` for the magnifying-glass cursor, then drag
+right to zoom in or left to zoom out. Press `H` for the hand cursor, then hold the left mouse
+button and drag to pan the preview. Press `V` or `Esc` to return to the normal cursor. The status
+bar confirms every mode change and reports the current zoom percentage; zoom and pan affect only
+the preview, never the document canvas or exported dimensions.
 
 ## Projects, recovery, and export
 
