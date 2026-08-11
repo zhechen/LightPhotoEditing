@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QKeySequence
+from PySide6.QtGui import QAction, QActionGroup, QKeySequence
 from PySide6.QtWidgets import QFileDialog, QMainWindow, QMessageBox, QDockWidget, QInputDialog
 
 from lightedit.core.document import Document, Layer
@@ -30,6 +30,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("LightEdit")
         self.resize(1100, 750)
+        self.setAcceptDrops(True)
         self.document = None
         self.history = History()
         self.active_tool = "brush"
@@ -46,6 +47,8 @@ class MainWindow(QMainWindow):
         self.active_layer = 0
         self.canvas.files_dropped.connect(self.import_paths)
         self.canvas.transform_requested.connect(self.transform_active_layer)
+        self.canvas.mode_changed.connect(self._show_mode)
+        self.canvas.zoom_changed.connect(self._show_zoom)
         self.layers.layer_selected.connect(self.select_layer)
         self.layers.invert_mask.connect(self.invert_active_mask)
         self.layers.half_mask.connect(self.half_active_mask)
@@ -73,18 +76,59 @@ class MainWindow(QMainWindow):
         self.grid_action = edit.addAction("Align to Grid")
         self.grid_action.setCheckable(True)
         self.grid_action.toggled.connect(self.set_grid)
+        view = self.menuBar().addMenu("&View")
+        for key, callback in (
+            ("zoom_in", self.canvas.zoom_in),
+            ("zoom_out", self.canvas.zoom_out),
+            ("fit", self.canvas.fit_to_window),
+            ("actual_size", self.canvas.actual_size),
+        ):
+            view.addAction(self._action(key, callback))
         filters = self.menuBar().addMenu("Fi&lter")
         filters.addAction(self._action("liquify", lambda: LiquifyWorkspace(self).exec()))
         help_menu = self.menuBar().addMenu("&Help")
         help_menu.addAction(self._action("shortcuts", lambda: ShortcutsDialog(self).exec()))
         toolbar = self.addToolBar("Tools")
-        for key in ("brush", "clone", "heal", "blur_sharpen"):
-            toolbar.addAction(
-                self._action(key, lambda checked=False, tool=key: self.select_tool(tool))
-            )
+        toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
+        mode_group = QActionGroup(self)
+        mode_group.setExclusive(True)
+        for key in ("normal", "zoom", "hand", "brush", "clone", "heal", "blur_sharpen"):
+            action = self._action(key, lambda checked=False, tool=key: self.select_tool(tool))
+            if key in {"normal", "zoom", "hand"}:
+                action.setCheckable(True)
+                mode_group.addAction(action)
+            toolbar.addAction(action)
+        self._actions["normal"].setChecked(True)
+        escape = QAction(self)
+        escape.setShortcut(QKeySequence(Qt.Key.Key_Escape))
+        escape.triggered.connect(lambda: self.select_tool("normal"))
+        self.addAction(escape)
 
     def select_tool(self, tool):
         self.active_tool = tool
+        if tool in {"normal", "zoom", "hand"}:
+            self.canvas.set_mode(tool)
+        else:
+            self.statusBar().showMessage(f"{SHORTCUTS[tool][0]} activated", 2500)
+
+    def _show_mode(self, mode):
+        labels = {"normal": "Normal cursor", "zoom": "Zoom tool", "hand": "Hand tool"}
+        if mode in self._actions:
+            self._actions[mode].setChecked(True)
+        self.statusBar().showMessage(f"{labels[mode]} activated", 2500)
+
+    def _show_zoom(self, zoom):
+        self.statusBar().showMessage(f"Zoom: {zoom:.0%}", 2000)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls() and any(url.isLocalFile() for url in event.mimeData().urls()):
+            event.acceptProposedAction()
+
+    def dropEvent(self, event):
+        paths = [Path(url.toLocalFile()) for url in event.mimeData().urls() if url.isLocalFile()]
+        if paths:
+            self.import_paths(paths)
+            event.acceptProposedAction()
 
     def undo(self):
         if self.history.undo() and self.document:
